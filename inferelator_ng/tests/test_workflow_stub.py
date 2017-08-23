@@ -88,3 +88,12 @@ class TestWorkflowStub(unittest.TestCase):
         self.assertEqual(work.meta_data.shape, (421, 5))
         self.assertEqual(work.meta_data.columns.tolist(), ['condName', 'del.t', 'is1stLast', 'isTs', 'prevCol'])
 
+    def test_stub_without_gold_standard(self):
+        # create and configure the work flow
+        work = StubWorkflow()
+        work.priors_file = "priors.tsv"
+        work.input_dir = os.path.join(my_dir, "../../data/dream4_no_gs_for_test_purposes")
+        work.test_case = self
+        # run the workflow (validation tests in emit_results)
+        work.run()
+        self.assertEqual(work.gold_standard, None)
