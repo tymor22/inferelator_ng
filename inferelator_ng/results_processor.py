@@ -33,14 +33,14 @@ class ResultsProcessor:
         for beta in self.betas:
             self.betas_sign = self.betas_sign + np.sign(beta.values)
             self.betas_non_zero = self.betas_non_zero + np.absolute(np.sign(beta.values))
-     
+
         #The following line returns 1 for all entries that appear in more than (or equal to) self.threshold fraction of bootstraps and 0 otherwise
         thresholded_matrix = ((self.betas_non_zero / len(self.betas)) >= self.threshold).astype(int)
         #Note that the current version is blind to the sign of those betas, so the betas_sign matrix is not used. Later we might want to modify this such that only same-sign interactions count.
         return thresholded_matrix
 
     def calculate_precision_recall(self, combined_confidences, gold_standard):
-        # this code only runs for a positive gold standard, so explicitly transform it using the absolute value: 
+        # this code only runs for a positive gold standard, so explicitly transform it using the absolute value:
         gold_standard = np.abs(gold_standard)
         # filter gold standard
         gold_standard_nozero = gold_standard.loc[(gold_standard!=0).any(axis=1), (gold_standard!=0).any(axis=0)]
@@ -88,7 +88,7 @@ class ResultsProcessor:
             # Since this was sorted using a flattened index, we need to reconvert into labeled 2d index
             index_idx = i / num_cols
             column_idx = i % num_cols
-            row_name = combined_confidences.index[index_idx]   
+            row_name = combined_confidences.index[index_idx]
             column_name = combined_confidences.columns[column_idx]
             if row_name in priors.index:
                 prior_value = priors.ix[row_name, column_name]
@@ -108,9 +108,9 @@ class ResultsProcessor:
         betas_stack = self.threshold_and_summarize()
         combined_confidences.to_csv(os.path.join(output_dir, 'combined_confidences.tsv'), sep = '\t')
         betas_stack.to_csv(os.path.join(output_dir,'betas_stack.tsv'), sep = '\t')
-        (recall, precision) = self.calculate_precision_recall(combined_confidences, gold_standard)
-        aupr = self.calculate_aupr(recall, precision)
-        self.plot_pr_curve(recall, precision, aupr, output_dir)
+        if not (gold_standard is None):
+            (recall, precision) = self.calculate_precision_recall(combined_confidences, gold_standard)
+            aupr = self.calculate_aupr(recall, precision)
+            self.plot_pr_curve(recall, precision, aupr, output_dir)
         resc_betas_mean, resc_betas_median = self.mean_and_median(self.rescaled_betas)
         self.save_network_to_tsv(combined_confidences, resc_betas_median, priors, output_dir)
-        

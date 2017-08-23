@@ -50,13 +50,13 @@ class WorkflowBase(object):
         self.expression_matrix = self.input_dataframe(self.expression_matrix_file)
         tf_file = self.input_file(self.tf_names_file)
         self.tf_names = utils.read_tf_names(tf_file)
-        
+
         # Read metadata, creating a default non-time series metadata file if none is provided
         self.meta_data = self.input_dataframe(self.meta_data_file, has_index=False, strict=False)
         if self.meta_data is None:
             self.meta_data = self.create_default_meta_data(self.expression_matrix)
         self.priors_data = self.input_dataframe(self.priors_file)
-        self.gold_standard = self.input_dataframe(self.gold_standard_file)
+        self.gold_standard = self.input_dataframe(self.gold_standard_file, strict=False)
 
     def input_path(self, filename):
         return os.path.abspath(os.path.join(self.input_dir, filename))
@@ -111,7 +111,7 @@ class WorkflowBase(object):
         tf_names = list(set.intersection(set(self.tf_names), set(all_regs_with_data)))
         self.priors_data = self.priors_data.loc[exp_genes, tf_names]
         self.priors_data = pd.DataFrame.fillna(self.priors_data, 0)
-        
+
     def get_bootstraps(self):
         """
         Generate sequence of bootstrap parameter objects for run.
